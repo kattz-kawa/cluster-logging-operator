@@ -11,6 +11,24 @@ if proc_id != "-" && proc_id != "" {
 } else {
   ._syslog.tag = to_string(tag)
 }
+
+# Escape non-final newlines in multi-line EventRouter messages
+if !is_null(.plKey) {
+    line_array = split!(.plKey, "\n")
+    escaped = ""
+    if length(line_array) > 1 {
+        for_each(line_array) -> |i, line| {
+            if i < length(line_array) - 1 {
+                escaped = escaped + line + s'\n'
+            } else {
+                # attempt: last line
+                escaped = escaped + line + "\n"
+            }
+        }
+        .plKey = escaped
+    }
+}
+
 if is_null(.plKey) {
     .payload_key = .
 } else {

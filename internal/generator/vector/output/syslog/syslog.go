@@ -148,6 +148,23 @@ if proc_id != "-" && proc_id != "" {
 {{end}}
 
 {{if .PayloadKey -}}
+# Escape non-final newlines in multi-line EventRouter messages
+if !is_null({{.PayloadKey}}) {
+    line_array = split!({{.PayloadKey}}, "\n")
+    escaped = ""
+    if length(line_array) > 1 {
+        for_each(line_array) -> |i, line| {
+            if i < length(line_array) - 1 {
+                escaped = escaped + line + s'\n'
+            } else {
+                # attempt: last line
+                escaped = escaped + line + "\n"
+            }
+        }
+        {{.PayloadKey}} = escaped
+    }
+}
+
 if is_null({{.PayloadKey}}) {
 	.payload_key = .
 } else {
